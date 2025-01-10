@@ -11,7 +11,7 @@ import SwiftUI
 struct ValorantKronosApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ValorantNavBarView()
         }
     }
 }

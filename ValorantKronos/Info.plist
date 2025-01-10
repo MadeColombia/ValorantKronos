@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>UIAppFonts</key>
+	<array>
+		<string>ValorantFont.ttf</string>
+		<string>Tungsten-Black.otf</string>
+		<string>Tungsten-Bold.otf</string>
+		<string>Tungsten-Book.otf</string>
+		<string>Tungsten-Light.otf</string>
+		<string>Tungsten-Medium.otf</string>
+		<string>Tungsten-Semibold.otf</string>
+		<string>Tungsten-Semibold.ttf</string>
+		<string>Tungsten-Semibold-1.ttf</string>
+		<string>Tungsten-Thin.otf</string>
+		<string>Tungsten-Thin-1.otf</string>
+		<string>Tungsten-XLight.otf</string>
+		<string>tungstenbook.ttf</string>
+		<string>TungstenComp-Black.otf</string>
+		<string>TungstenComp-Bold.otf</string>
+		<string>TungstenComp-Book.otf</string>
+		<string>TungstenComp-Light.otf</string>
+		<string>TungstenComp-Medium.otf</string>
+		<string>TungstenComp-Semibold.otf</string>
+		<string>TungstenComp-Thin.otf</string>
+		<string>TungstenComp-XLight.otf</string>
+		<string>tungstencompbold.ttf</string>
+		<string>TungstenCond-Black.otf</string>
+		<string>TungstenCond-Bold.otf</string>
+		<string>TungstenCond-Bold-1.otf</string>
+		<string>TungstenCond-Book.otf</string>
+		<string>TungstenCond-Light.otf</string>
+		<string>TungstenCond-Medium.otf</string>
+		<string>TungstenCond-Semibold.otf</string>
+		<string>TungstenCond-Thin.otf</string>
+		<string>TungstenCond-XLight.otf</string>
+		<string>TungstenNarrow-Black.otf</string>
+		<string>TungstenNarrow-Bold.otf</string>
+		<string>TungstenNarrow-Book.otf</string>
+		<string>TungstenNarrow-Light.otf</string>
+		<string>TungstenNarrow-Medium.otf</string>
+		<string>TungstenNarrow-Semibold.otf</string>
+		<string>TungstenNarrow-Thin.otf</string>
+		<string>TungstenNarrow-XLight.otf</string>
+		<string>tungstennarrowblack.ttf</string>
+	</array>
+</dict>
+</plist>

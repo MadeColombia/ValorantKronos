@@ -7,33 +7,40 @@
 
 import SwiftUI
 
-struct MenuCardView: View {
+struct MenuCardView<Destination: View>: View {
     let imageName: String
     let title: String
+    let viewDestination: Destination
     
     var body: some View {
-        VStack {
-            Spacer()
-            ZStack {
-                Rectangle()
-                    .fill(Color.valorantRED)
-                    .frame(height: 30) // Adjust height
-                
-                Text(title)
-                    .font(.custom("Tungsten-Bold", size: 96))
-                    .foregroundStyle(.white)
+        NavigationLink(destination: viewDestination ){
+            VStack {
+                Spacer()
+                ZStack {
+                    Rectangle()
+                        .fill(Color.valorantRED)
+                        .frame(height: 30) // Adjust height
                     
-            }
-            
-        }.background(Image(imageName)
-            .resizable()
-            .scaledToFill())
-        .frame(width: 300, height: 200)
-        .cornerRadius(10)
-        .shadow(radius: 5)
+                    Text(title)
+                        .font(.custom("Tungsten-Bold", size: 96))
+                        .foregroundStyle(.white)
+                        
+                }
+                
+            }.background(Image(imageName)
+                .resizable()
+                .scaledToFill())
+            .frame(width: 300, height: 200)
+            .cornerRadius(10)
+            .shadow(radius: 5)
+        }
     }
 }
 
 #Preview {
-    MenuCardView(imageName: "AgentsImage", title: "AGENTS")
+    MenuCardView(
+        imageName: "AgentsImage",
+        title: "AGENTS",
+        viewDestination: Text("Agents View Content")
+    )
 }

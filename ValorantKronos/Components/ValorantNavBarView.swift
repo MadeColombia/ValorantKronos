@@ -22,7 +22,6 @@ struct ValorantNavBarView: View {
                         Image("ValorantLogo")
                     }
                     .tag(2)
-                    .ignoresSafeArea(edges: .top)
                 SearchView()
                     .tabItem {
                         Image("SearchLogo")

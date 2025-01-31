@@ -9,24 +9,26 @@ import SwiftUI
 
 struct MainView: View {
     var body: some View {
-        ZStack {
-            Color.slightlyBlack
-                .ignoresSafeArea()
-
-            GeometryReader { geometry in
-                ScrollView(.vertical) {
-                    VStack(spacing: 0) {
-                        Valorant1stBlock()
-                            .frame(width: geometry.size.width, height: geometry.size.height * 0.9)
-                        Valorant2ndBlock()
-                            .frame(width: geometry.size.width, height: 350)
-                        Valorant3rdBlock()
-                            .frame(width: geometry.size.width, height: 400)
+        NavigationView(content: {
+            ZStack {
+                Color.slightlyBlack
+                    .ignoresSafeArea()
+                GeometryReader { geometry in
+                    ScrollView(.vertical) {
+                        VStack(spacing: 0) {
+                            Valorant1stBlock()
+                                .frame(width: geometry.size.width, height: geometry.size.height * 0.9)
+                            Valorant2ndBlock()
+                                .frame(width: geometry.size.width, height: 350)
+                            Valorant3rdBlock()
+                                .frame(width: geometry.size.width, height: 400)
+                        }
                     }
+                    .ignoresSafeArea(edges: .top)
+                    .scrollIndicators(.hidden)
                 }
-                .scrollIndicators(.hidden)
             }
-        }
+        })
     }
 }
 
@@ -69,9 +71,9 @@ struct Valorant2ndBlock: View {
                 .padding(.leading)
             ScrollView(.horizontal) {
                 LazyHStack(alignment: .center,spacing: 30) {
-                    MenuCardView(imageName: "AgentsImage", title: "AGENTS")
-                    MenuCardView(imageName: "WeaponsImage", title: "WEAPONS")
-                    MenuCardView(imageName: "MapsImage", title: "MAPS")
+                    MenuCardView(imageName: "AgentsImage", title: "AGENTS", viewDestination: AgentsView())
+                    MenuCardView(imageName: "WeaponsImage", title: "WEAPONS", viewDestination: WeaponsView())
+                    MenuCardView(imageName: "MapsImage", title: "MAPS", viewDestination: MapsView())
                 }
                 .padding(.horizontal, 20)
                 .scrollTargetLayout()

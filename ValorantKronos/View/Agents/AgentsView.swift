@@ -14,8 +14,6 @@ struct AgentsView: View {
     private var threeColumnGrid = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
     
     var body: some View {
-        
-        NavigationView(content: {
             ZStack {
                 Color.almostWhite
                     .ignoresSafeArea()
@@ -31,7 +29,9 @@ struct AgentsView: View {
                     ScrollView {
                         LazyVGrid(columns: threeColumnGrid, spacing: 0) {
                             ForEach(0 ..< 20) { Number in
-                                NavigationLink(destination: {SingleAgentView(selectedAgent: mockAgent)}, label: {
+                                NavigationLink(destination: {
+                                    SingleAgentView(selectedAgent: mockAgent)
+                                }, label: {
                                     AgentCardView(agentNumber: Number, agent: mockAgent)
                                         .shadow(radius: 10)
                                 })
@@ -40,7 +40,6 @@ struct AgentsView: View {
                     }.scrollIndicators(.hidden)
                 }
             }
-        })
     }
 }
 

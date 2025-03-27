@@ -57,15 +57,19 @@ struct AgentInfo: View {
 
     var body: some View {
         ZStack {
-            HStack {
+            VStack {
+                HStack {
+                    Spacer()
+                    Text("04")
+                        .foregroundStyle(Color.gray)
+                        .opacity(0.03)
+                        .font(.custom("Tungsten-Semibold", size: 350))
+                        .rotationEffect(Angle(degrees: 270))
+                        .offset(x:15 ,y: -40)
+                }
                 Spacer()
-                Text("04")
-                    .foregroundStyle(Color.gray)
-                    .opacity(0.03)
-                    .font(.custom("Tungsten-Semibold", size: 350))
-                    .rotationEffect(Angle(degrees: 270))
-                    .offset(x:15 ,y: -40)
             }
+            
             
             VStack (spacing: 0){
                 HStack {

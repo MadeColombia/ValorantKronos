@@ -9,6 +9,10 @@ ValorantKronos is an app based on the game VALORANT. It provides detailed inform
 - Navigate through various maps available in the game.
 - Search functionality to quickly find specific information.
 
+## Prerequisites
+- Xcode 14.0 or later
+- Swift 5.7 or later
+- Internet connection to fetch data from the VALORANT API
 ## Installation
 1. Clone the repository: `git clone https://github.com/MadeColombia/ValorantKronos.git`
 2. Open the project in Xcode.

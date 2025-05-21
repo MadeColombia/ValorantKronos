@@ -33,7 +33,7 @@ Include screenshots of the app to showcase its features.
 4. Create a pull request with a detailed description of your changes.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](./LICENSE).
 
 ## Contact
 For any questions or feedback, please contact the project maintainers.

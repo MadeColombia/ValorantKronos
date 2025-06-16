@@ -21,8 +21,5 @@ enum CATEGORY: String, CaseIterable, Identifiable {
 class WeaponsViewModel: ObservableObject {
     @Published var categories: CATEGORY = .SIDEARMS
     @Published var searchText: String = ""
-    @Published var weapons: [Weapon] = [mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon,
-                                        mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon,
-                                        mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon,
-                                        mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon, mockWeapon]
+    @Published var weapons: [Weapon] = Array(repeating: mockWeapon, count: 40)
 }

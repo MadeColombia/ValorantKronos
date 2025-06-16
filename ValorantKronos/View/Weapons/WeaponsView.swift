@@ -28,7 +28,7 @@ struct WeaponsView: View {
                     
                     ScrollView(.vertical) {
                         ForEach(CATEGORY.allCases) { categoryState in 
-                            DropdownMenuDisclosureGroup(weapons: [mockWeapon], title: categoryState.rawValue)
+                            DropdownMenuDisclosureGroup(weapons: viewModel.weapons.filter { $0.category == categoryState.rawValue }, title: categoryState.rawValue)
                         }
                     }
                     .scrollIndicators(.hidden)

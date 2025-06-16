@@ -10,6 +10,8 @@ import Foundation
 class Weapon: Codable, Identifiable {
     
     let uuid: String
+    var id: String { uuid }
+    
     let displayName: String
     
     let category: String

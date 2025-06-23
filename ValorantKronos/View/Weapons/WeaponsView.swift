@@ -44,7 +44,7 @@ struct WeaponsView: View {
                     }, label: {
                         HStack(spacing: 5){
                             Image(systemName: "chevron.backward")
-                            Text("Back")
+                            Text("BACK")
                                 .font(.custom(FontNames.tungstenMedium, size: 22))
                         }.foregroundStyle(Color.white)
                     })

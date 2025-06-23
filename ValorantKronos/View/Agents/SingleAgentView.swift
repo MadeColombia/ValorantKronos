@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SingleAgentView: View {
+    @Environment(\.dismiss) private var dismiss
     let selectedAgent: Agent
     
     var body: some View {
@@ -47,6 +48,20 @@ struct SingleAgentView: View {
                     }
                     .ignoresSafeArea(edges: .top)
                     .scrollIndicators(.hidden)
+                    .toolbarBackground(.hidden)
+                }
+            }.navigationBarBackButtonHidden(true)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button(action: { dismiss() }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "chevron.backward")
+                            Text("AGENTS")
+                                .font(.custom(FontNames.tungstenMedium, size: 22))
+                        }
+                        .foregroundStyle(.white)
+                    }
                 }
             }
     }
@@ -199,5 +214,8 @@ struct AbilityCardView: View {
 }
 
 #Preview {
-    SingleAgentView(selectedAgent: mockAgent)
+    NavigationView(content: {
+        SingleAgentView(selectedAgent: mockAgent)
+    })
+    
 }

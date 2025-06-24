@@ -252,7 +252,7 @@ struct ChromasCarrousel: View {
             }
         }
         .tabViewStyle(PageTabViewStyle())
-        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
         .frame(height: 250)
         .cornerRadius(20)
     }

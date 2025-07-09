@@ -64,7 +64,7 @@ struct DropdownMenuDisclosureGroup: View {
                 LazyHStack(alignment: .center, spacing: 30) {
                     ForEach(weapons) { weapon in
                         NavigationLink(destination: SingleWeaponView(weapon: weapon)) {
-                            LargeCardView(title: weapon.displayName, isHorizontal: false)
+                            LargeCardView(title: weapon.displayName, portraitImage: weapon.displayIcon ?? "placeholderImageName", isHorizontal: false)
                         }
                     }
                 }

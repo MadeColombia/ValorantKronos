@@ -30,6 +30,7 @@ struct MapsView: View {
 
                     Text("MAPS")
                         .font(.custom(FontNames.tungstenBold, size: 64))
+                        .foregroundStyle(Color.black)
                         .padding(.horizontal)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .opacity(showPrincipalTitle ? 0 : 1)
@@ -42,6 +43,9 @@ struct MapsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await viewModel.loadMaps()
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button(action: { dismiss() }) {
@@ -71,8 +75,10 @@ struct CardCarrousel: View {
     var body: some View {
         VStack(spacing: 20) {
             ForEach(maps) { map in
+                if let splashImage = map.splash {
                 Button(action: { selectedMap = map }) {
-                    LargeCardView(title: map.displayName, isHorizontal: true)
+                        LargeCardView(title: map.displayName, portraitImage: splashImage, isHorizontal: true)
+                    }
                 }
             }
         }

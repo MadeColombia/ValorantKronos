@@ -10,37 +10,50 @@ import SwiftUI
 struct SingleAgentView: View {
     @Environment(\.dismiss) private var dismiss
     let selectedAgent: Agent
-    
+
     var body: some View {
             ZStack {
                 Color.slightlyBlack
                     .ignoresSafeArea()
-            
+
                 GeometryReader { geometry in
                     ScrollView(.vertical) {
                         VStack(spacing: 0) {
-                            AsyncImage(url: URL(string: self.selectedAgent.fullPortrait ?? "")) { image in
-                                ZStack{
-                                    Image("AgentBackgroundDark")
+                            CachedAsyncImage(url: URL(string: self.selectedAgent.fullPortrait ?? "")) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    ZStack{
+                                        Image("AgentBackgroundDark")
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .containerRelativeFrame(.vertical) { height, _ in height / 2 }
+                                            .background(
+                                                CachedAsyncImage(url: URL(string: self.selectedAgent.background ?? "")) { phase in
+                                                    if let image = phase.image {
+                                                        image.resizable().aspectRatio(contentMode: .fill)
+                                                    } else {
+                                                        Color.clear
+                                                    }
+                                                }
+                                                .opacity(0.05)
+                                            )
+                                    }
+                                case .failure, .empty:
+                                    Image(systemName: "photo")
                                         .resizable()
-                                        .aspectRatio(contentMode: .fill)
-                                        
-                                    image
-                                        .resizable()
-                                        .scaledToFill()
-                                        .containerRelativeFrame(.vertical) { height, _ in height / 2 }
-                                        .background( AsyncImage(url: URL(string: self.selectedAgent.background ?? "")).opacity(0.05))
+                                        .foregroundStyle(Color.almostWhite)
+                                        .frame(width: 15, height: 15)
+                                @unknown default:
+                                    EmptyView()
                                 }
-                                
-                            } placeholder: {
-                                Image(systemName: "photo")
-                                    .resizable()
-                                    .foregroundStyle(Color.almostWhite)
-                                    .frame(width: 15, height: 15)
                             }
                             .frame(width: geometry.size.width, height: geometry.size.height * 0.7)
                             .clipped()
-                            
+
                             VStack(spacing: 0){
                                 AgentInfo(selectedAgent: self.selectedAgent)
                             }
@@ -68,53 +81,55 @@ struct SingleAgentView: View {
 }
 
 struct AgentInfo: View {
+    @State private var showDeveloperName = false
     let selectedAgent: Agent
 
+
     var body: some View {
-        ZStack {
-            VStack {
-                HStack {
-                    Spacer()
-                    Text("04")
-                        .foregroundStyle(Color.gray)
-                        .opacity(0.03)
-                        .font(.custom("Tungsten-Semibold", size: 350))
-                        .rotationEffect(Angle(degrees: 270))
-                        .offset(x:15 ,y: -40)
+        VStack (spacing: 0){
+            HStack {
+                VStack(alignment: .leading) {
+                    if showDeveloperName {
+                        Text(self.selectedAgent.developerName)
+                            .foregroundColor(Color.valorantRED)
+                            .font(.custom("Tungsten-Bold", size: 80))
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .move(edge: .top).combined(with: .opacity)))
+                    } else {
+                        Text(self.selectedAgent.displayName)
+                            .foregroundColor(Color.almostWhite)
+                            .font(.custom("Tungsten-Bold", size: 80))
+                            .transition(.asymmetric(insertion: .move(edge: .bottom).combined(with: .opacity), removal: .move(edge: .top).combined(with: .opacity)))
+                    }
+                }
+                .onTapGesture {
+                    withAnimation(.easeInOut) {
+                        showDeveloperName.toggle()
+                    }
                 }
                 Spacer()
             }
-            
-            
-            VStack (spacing: 0){
-                HStack {
-                    Text(self.selectedAgent.displayName)
-                        .foregroundColor(Color.almostWhite)
-                        .font(.custom("Tungsten-Bold", size: 80))
-                        .padding(.horizontal)
-                    Spacer()
-                }.padding(.top)
-                
-                AgentTypeBadge(role: self.selectedAgent.role)
-                
-                Text(self.selectedAgent.description)
-                    .lineLimit(5)
-                    .font(.custom("Tungsten-Light", size: 20))
-                    .foregroundColor(Color.almostWhite)
-                    .padding()
-                
-                Spacer()
-                
-                SpecialAbilitiesView(abilities: self.selectedAgent.abilities)
-                    .padding(.top, 50)
-            }
+            .padding(.horizontal)
+            .padding(.top)
+
+            AgentTypeBadge(role: self.selectedAgent.role)
+
+            Text(self.selectedAgent.description)
+                .lineLimit(5)
+                .font(.custom("Tungsten-Light", size: 20))
+                .foregroundColor(Color.almostWhite)
+                .padding()
+
+            Spacer()
+
+            SpecialAbilitiesView(abilities: self.selectedAgent.abilities)
+                .padding(.top, 50)
         }
     }
 }
 
 struct AgentTypeBadge: View {
     let role: Role?
-    
+
     var body: some View {
         HStack {
             HStack(alignment: .center,spacing: 15) {
@@ -122,94 +137,99 @@ struct AgentTypeBadge: View {
                     .textCase(.uppercase)
                     .font(.custom("Tungsten-Semibold", size: 20))
                     .foregroundColor(Color.almostWhite)
-                
-                AsyncImage(url: URL(string: self.role?.displayIcon ?? "")) { image in
+
+                CachedAsyncImage(url: URL(string: self.role?.displayIcon ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
                         image
                             .renderingMode(.template)
                             .resizable()
                             .foregroundStyle(Color.valorantRED)
                             .frame(width: 20, height: 20)
-                    
-                } placeholder: {
-                    Image(systemName: "photo")
-                        .resizable()
-                        .foregroundStyle(Color.almostWhite)
-                        .frame(width: 20, height: 20)
+                    case .failure, .empty:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .foregroundStyle(Color.almostWhite)
+                            .frame(width: 20, height: 20)
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
             }
             .padding(.horizontal, 10)
             .frame(height: 35)
             .background(Color.valorantBlack)
             .clipShape(RoundedCorner(radius: 10))
-            
+
             Spacer()
         }.padding(.horizontal)
-        
+
     }
-    
+
 }
 
 struct SpecialAbilitiesView: View {
     let abilities: [Ability]
-    
+
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 30) {
             Text("SPECIAL ABILITIES")
                 .font(.custom("Tungsten-Semibold", size: 36))
                 .foregroundColor(Color.almostWhite)
                 .padding(.horizontal)
-            
-            VStack {
+
+            VStack(spacing: 20) {
                 ForEach(self.abilities) { ability in
                     if ability.displayIcon != nil && ability.displayIcon != "" {
-                        
-                        AbilityCardView(slot: ability.slot, image: ability.displayIcon!, name: ability.displayName, description: ability.description)
-                            .padding()
+                        AbilityCardView(ability: ability)
+                            .padding(.horizontal)
                     }
                 }
-                
+
             }
         }
     }
 }
 
 struct AbilityCardView: View {
-    let slot: String
-    let image: String
-    let name: String
-    let description: String
-    
+    let ability: Ability
+
     var body: some View {
         HStack {
-            AsyncImage(url: URL(string: self.image), content: {image in
-                image
-                    .resizable()
-                    .frame(width: 50, height: 50)
-                    .padding(5)
-            }, placeholder: {
-                Text("wait")
+            CachedAsyncImage(url: URL(string: self.ability.displayIcon ?? ""), content: { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .frame(width: 50, height: 50)
+                        .padding(5)
+                case .failure, .empty:
+                    ProgressView()
+                        .frame(width: 50, height: 50)
+                @unknown default:
+                    EmptyView()
+                }
             })
-            
+
             VStack(alignment: .leading) {
-                Text(self.name)
+                Text(self.ability.displayName)
                     .font(.custom("Tungsten-Semibold", size: 20))
                     .foregroundColor(Color.almostWhite)
                     .padding(.horizontal)
-                Text(self.description)
+                Text(self.ability.description)
                     .font(.custom("Tungsten-Light", size: 16))
                     .foregroundColor(Color.almostWhite)
                     .padding(.horizontal)
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
-        .background( Color.valorantBlack)
+        .background(Color.valorantBlack)
         .clipShape(RoundedCorner(radius: 10, corners: .allCorners))
         .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(self.slot == "Ultimate" ? Color.valorantRED : Color.valorantBlack, lineWidth: 2)
+                    .stroke(self.ability.slot == "Ultimate" ? Color.valorantRED : Color.valorantBlack, lineWidth: 2)
             )
-        
-        
     }
 }
 
@@ -217,5 +237,5 @@ struct AbilityCardView: View {
     NavigationView(content: {
         SingleAgentView(selectedAgent: mockAgent)
     })
-    
+
 }

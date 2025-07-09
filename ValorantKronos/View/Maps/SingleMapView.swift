@@ -181,7 +181,7 @@ struct MapInfo: View {
                 Text(map.displayName.uppercased())
                     .font(.custom("Tungsten-Bold", size: 80))
 
-                Text(map.coordinates)
+                Text("LOCATION: \(map.coordinates ?? "UNKNOWN")")
                     .font(.custom("Tungsten-Light", size: 20))
             }
         }

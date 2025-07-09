@@ -75,8 +75,8 @@ struct CardCarrousel: View {
     var body: some View {
         VStack(spacing: 20) {
             ForEach(maps) { map in
+                if let splashImage = map.splash {
                 Button(action: { selectedMap = map }) {
-                    if let splashImage = map.splash {
                         LargeCardView(title: map.displayName, portraitImage: splashImage, isHorizontal: true)
                     }
                 }

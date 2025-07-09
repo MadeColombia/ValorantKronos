@@ -11,7 +11,7 @@ class Agent: Codable, Identifiable {
     
     var uuid: String
     var displayName: String
-    
+    var developerName: String
     var description: String
     
     var fullPortrait: String?
@@ -22,9 +22,10 @@ class Agent: Codable, Identifiable {
     var role: Role?
     var abilities: [Ability]
     
-    init(uuid: String, displayName: String, description: String, fullPortrait: String?, background: String?, isPlayableCharacter: Bool?, role: Role?, abilities: [Ability]) {
+    init(uuid: String, displayName: String, developerName: String? ,description: String, fullPortrait: String?, background: String?, isPlayableCharacter: Bool?, role: Role?, abilities: [Ability]) {
         self.uuid = uuid
         self.displayName = displayName
+        self.developerName = developerName ?? "Unknown"
         self.description = description
         self.fullPortrait = fullPortrait
         self.background = background
@@ -45,7 +46,7 @@ class Role: Codable, Identifiable {
     
     init(id: String? = nil, displayName: String? = nil, description: String? = nil, displayIcon: String? = nil) {
         self.id = id
-        self.displayName = displayName
+        self.displayName = displayName?.capitalized
         self.description = description
         self.displayIcon = displayIcon
     }
@@ -68,12 +69,35 @@ class Ability: Codable, Identifiable {
     }
 }
 
+// MARK: - Networking
+
+extension Agent {
+    static func fetchAgents(forceRefresh: Bool = false) async throws -> [Agent] {
+        let cacheKey = "agents"
+        let cacheDuration: TimeInterval = 60 * 60 * 24 // 24 hours
+        let cache = DataCache.shared
+        
+        if !forceRefresh,
+           let cacheDate = cache.cacheDate(forKey: cacheKey),
+           Date().timeIntervalSince(cacheDate) < cacheDuration,
+           let cached: [Agent] = cache.retrieve(forKey: cacheKey) {
+            return cached
+        }
+        
+        let parameters = ["isPlayableCharacter": "true"]
+        let agents: [Agent] = try await APIService.shared.fetch(endpoint: "agents", parameters: parameters)
+        cache.cache(agents, forKey: cacheKey)
+        return agents
+        
+    }
+}
 
 // MARK: - Mock Data
 
 let mockAgent = Agent(
     uuid: "309402333",
     displayName: "SOVA",
+    developerName: "MIRATZVE",
     description: """
     Born from the eternal winter of Russia's tundra, Sova tracks, finds, and eliminates \
     enemies with ruthless efficiency and precision. His custom bow and incredible scouting abilities \

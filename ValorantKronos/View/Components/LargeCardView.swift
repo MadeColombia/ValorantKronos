@@ -9,25 +9,38 @@ import SwiftUI
 
 struct LargeCardView: View {
     let title: String
+    let portraitImage: String // Default image
     let isHorizontal: Bool
 
     private let cardWidth: CGFloat = 140
     private let cardHeight: CGFloat = 340
 
     var body: some View {
-        LargeCardStructure(title: title)
+        LargeCardStructure(title: title, portraitImage: portraitImage, isHorizontal: isHorizontal)
             .rotationEffect(.degrees(isHorizontal ? 270 : 0))
             .frame(width: isHorizontal ? cardHeight : cardWidth, height: isHorizontal ? cardWidth : cardHeight)
     }
 }
 struct LargeCardStructure: View {
     let title: String
+    let portraitImage: String
+    let isHorizontal: Bool
     
     var body: some View {
         ZStack {
-            Image("EventsImage") // Make sure to add the image to your assets
-                .resizable()
-                .scaledToFill()
+            CachedAsyncImage(url: URL(string: portraitImage)) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                        .rotationEffect(.degrees(isHorizontal ? 90 : 0))
+                case .failure, .empty:
+                    Color.gray
+                @unknown default:
+                    EmptyView()
+                }
+            }
             
             VStack {
                 BlurView(style: .systemMaterialDark)
@@ -54,5 +67,5 @@ struct LargeCardStructure: View {
 }
 
 #Preview {
-    LargeCardView(title: "PHANTOM CARINES", isHorizontal: false)
+    LargeCardView(title: "PHANTOM CARINES", portraitImage: mockMap.splash!, isHorizontal: true)
 }

@@ -72,9 +72,8 @@ struct ValorantNavBarView: View {
             if #available(iOS 15.0, *) {
                 UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
             }
-            
-            // This globally disables bouncing for all ScrollViews
-            UIScrollView.appearance().bounces = false
+            // Note: UIScrollView.appearance().bounces = false removed — this was a global
+            // override that disabled scroll bounce on ALL scroll views in the app.
         }
     }
 }

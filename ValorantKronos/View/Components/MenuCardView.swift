@@ -13,7 +13,7 @@ struct MenuCardView<Destination: View>: View {
     let viewDestination: Destination
     
     var body: some View {
-        NavigationLink(destination: viewDestination.navigationBarBackButtonHidden(true)) {
+        NavigationLink(destination: viewDestination) {
             VStack {
                 Spacer()
                 ZStack {

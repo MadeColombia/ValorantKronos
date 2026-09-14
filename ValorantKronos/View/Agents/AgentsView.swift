@@ -15,7 +15,11 @@ struct AgentsView: View {
     @State private var isExpanded: Bool = false
     @State private var showPrincipalTitle = false
 
-    private let threeColumnGrid = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+    private let threeColumnGrid = [
+        GridItem(.flexible(minimum: 40, maximum: 120)),
+        GridItem(.flexible(minimum: 40, maximum: 120)),
+        GridItem(.flexible(minimum: 40, maximum: 120))
+    ]
 
     // Custom colors for the overlay for better readability
     private let overlayLightBorderColor = Color(red: 236/255, green: 234/255, blue: 235/255)
@@ -29,7 +33,27 @@ struct AgentsView: View {
             if viewModel.isLoading {
                 ProgressView()
             } else if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
+                VStack(spacing: 16) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 44))
+                        .foregroundStyle(Color.gray)
+                    Text(errorMessage)
+                        .font(.custom(FontNames.tungstenMedium, size: 20))
+                        .foregroundStyle(Color.slightlyBlack)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                    Button {
+                        Task { await viewModel.loadAgents(forceRefresh: true) }
+                    } label: {
+                        Text("RETRY")
+                            .font(.custom(FontNames.tungstenBold, size: 22))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 10)
+                            .background(Color.valorantRED)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                }
             } else {
                 contentView
             }

@@ -1,50 +1,27 @@
 import SwiftUI
 
-// MARK: - Constants for Strings and Fonts
-struct AppStrings {
-    // SingleWeaponView
-    static let phantomTitle = "PHANTOM"
-    static let rifleSubtitle = "RIFLE"
-    static let weaponsNavBackButton = "Weapons"
-
-    // WeaponFile & Components
-    static let defaultSkinName = "Phantom OG Skin"
-    static let damageGroupBoxLabel = "DAMAGE"
-    static let chromasGroupBoxLabel = "CROMAS"
-    static let defaultChromaCardImage = "WeaponsImage" // For the static ChromaCard in WeaponFile button
-
-    // Stats Data (Example for Phantom)
-    static let headDamage = "195"; static let headMetric = "HEAD"
-    static let bodyDamage = "65";  static let bodyMetric = "BODY"
-    static let legsDamage = "48";  static let legsMetric = "LEGS"
-
-    static let fireRate = "5.25"; static let fireRateMetric = "FIRE RATE"; static let rdsSecUnit = "RDS/SEC"
-    static let runSpeed = "5.4";  static let runSpeedMetric = "RUN SPEED"; static let mSecUnit = "M/SEC"
-    static let equipSpeed = "1";   static let equipSpeedMetric = "EQUIP SPEED"; static let secUnit = "SEC"
-    
-    static let firstShotSpread = "0.1/0"; static let firstShotSpreadMetric = "1ST SHOT SPREAD"; static let degHipAdsUnit = "DEG (HIP/ADS)"
-    static let reloadSpeed = "2.5"; static let reloadSpeedMetric = "RELOAD SPEED" // secUnit is reused
-    static let magazineSize = "12"; static let magazineMetric = "MAGAZINE"; static let rdsUnit = "RDS"
-
-    // ChromasCarrousel
-    static let chromaImageNames = ["1", "2", "3", "4", "5"]
-
-    // SearchWeaponSkin
-    static let searchNavigationTitle = "Weapon Skins"
-    static let searchPrompt = "Search by name"
-    static let doneButton = "Done"
-}
-
+// MARK: - Font Name Constants (shared across files)
 struct FontNames {
     static let tungstenBold = "Tungsten-Bold"
     static let tungstenMedium = "Tungsten-Medium"
     static let tungstenSemiBold = "Tungsten-SemiBold"
 }
 
+// MARK: - Search Strings
+struct AppStrings {
+    // SearchWeaponSkin
+    static let searchNavigationTitle = "Weapon Skins"
+    static let searchPrompt = "Search by name"
+    static let doneButton = "Done"
+    // Damage group box
+    static let damageGroupBoxLabel = "DAMAGE"
+    static let chromasGroupBoxLabel = "SKINS"
+}
+
 // MARK: - Main View
 struct SingleWeaponView: View {
     @Environment(\.dismiss) var dismiss
-    let weapon: Weapon 
+    let weapon: Weapon
     @State private var showPrincipalTitle: Bool = false
     @State private var scrollOffset: CGFloat = 0
 
@@ -68,11 +45,12 @@ struct SingleWeaponView: View {
 
                 VStack(spacing: 0) {
                     HStack {
-                        VStack(alignment: .leading ,spacing: -10) {
-                            Text(AppStrings.phantomTitle)
+                        VStack(alignment: .leading, spacing: -10) {
+                            Text(weapon.displayName.uppercased())
                                 .font(.custom(FontNames.tungstenBold, size: 64))
                                 .lineLimit(1)
-                            Text(AppStrings.rifleSubtitle)
+                                .minimumScaleFactor(0.5)
+                            Text(weapon.formattedCategory.uppercased())
                                 .foregroundColor(Color.valorantRED)
                                 .font(.custom(FontNames.tungstenBold, size: 24))
                                 .lineLimit(1)
@@ -82,26 +60,24 @@ struct SingleWeaponView: View {
                     .padding(.horizontal)
                     .opacity(max(0, (scrollOffset - fadeThresholdEnd) / (fadeThresholdStart - fadeThresholdEnd)))
 
-                    WeaponFile()
+                    WeaponDetailFile(weapon: weapon)
                 }
             }.scrollIndicators(.hidden)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: {
-                    dismiss()
-                }, label: {
-                    HStack(spacing: 5){
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 5) {
                         Image(systemName: "chevron.backward")
-                        Text(AppStrings.weaponsNavBackButton)
+                        Text("WEAPONS")
                             .font(.custom(FontNames.tungstenMedium, size: 22))
                     }.foregroundStyle(Color.slightlyBlack)
-                })
+                }
             }
 
             ToolbarItem(placement: .principal) {
-                Text(AppStrings.phantomTitle)
+                Text(weapon.displayName.uppercased())
                     .font(.custom(FontNames.tungstenSemiBold, size: 25))
                     .opacity(showPrincipalTitle ? 1 : 0)
                     .animation(.easeOut(duration: 0.2), value: showPrincipalTitle)
@@ -110,14 +86,24 @@ struct SingleWeaponView: View {
     }
 }
 
-// MARK: - Weapon File and Components
-struct WeaponFile: View {
-    @StateObject var viewModel = WeaponsViewModel()
+// MARK: - Weapon Detail File (replaces hardcoded WeaponFile)
+struct WeaponDetailFile: View {
+    let weapon: Weapon
     @State private var isPresentingSheet = false
-    @State private var selectedSkinDisplayName: String = AppStrings.defaultSkinName
-    
+    @State private var selectedSkinDisplayName: String
+
+    init(weapon: Weapon) {
+        self.weapon = weapon
+        _selectedSkinDisplayName = State(initialValue: weapon.skins?.first?.displayName ?? "Default Skin")
+    }
+
+    private var firstDamageRange: DamageRange? {
+        weapon.weaponStats?.damageRanges.first
+    }
+
     var body: some View {
         VStack(spacing: 10) {
+            // Skin picker
             GroupBox {
                 Button(action: { isPresentingSheet = true }) {
                     VStack(spacing: 0) {
@@ -125,36 +111,62 @@ struct WeaponFile: View {
                             Text(selectedSkinDisplayName)
                                 .font(.custom(FontNames.tungstenSemiBold, size: 25))
                                 .lineLimit(1)
-                                .padding(.vertical,5)
+                                .padding(.vertical, 5)
                                 .foregroundColor(Color.deepRed)
-                            
                             Image(systemName: "chevron.forward")
                                 .foregroundColor(Color.deepRed)
                         }
-                        ChromaCard(imageName: AppStrings.defaultChromaCardImage)
-                            .padding(5)
+                        // Show the selected skin's display icon
+                        let skinIcon = weapon.skins?.first(where: { $0.displayName == selectedSkinDisplayName }).flatMap { $0.displayIcon }
+                        CachedAsyncImage(url: URL(string: skinIcon ?? weapon.displayIcon ?? "")) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image.resizable().scaledToFit().frame(height: 100)
+                            case .failure, .empty:
+                                Image(systemName: "photo")
+                                    .resizable().scaledToFit().frame(height: 80)
+                                    .foregroundStyle(Color.gray)
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                     }
                 }
             }
             .backgroundStyle(Color.khaki)
             .cornerRadius(20)
-            
+
+            // Stats / Damage
             GroupBox {
-                HStack(spacing: 10) {
-                    ShortDataView(metric: AppStrings.headMetric, data: AppStrings.headDamage)
-                    ShortDataView(metric: AppStrings.bodyMetric, data: AppStrings.bodyDamage)
-                    ShortDataView(metric: AppStrings.legsMetric, data: AppStrings.legsDamage)
-                }
-                Divider()
-                HStack(spacing: 10) {
-                    LargeDataView(metric: AppStrings.fireRateMetric, data: AppStrings.fireRate, unitMesure: AppStrings.rdsSecUnit)
-                    LargeDataView(metric: AppStrings.runSpeedMetric, data: AppStrings.runSpeed, unitMesure: AppStrings.mSecUnit)
-                    LargeDataView(metric: AppStrings.equipSpeedMetric, data: AppStrings.equipSpeed, unitMesure: AppStrings.secUnit)
-                }
-                HStack(spacing: 10) {
-                    LargeDataView(metric: AppStrings.firstShotSpreadMetric, data: AppStrings.firstShotSpread, unitMesure: AppStrings.degHipAdsUnit)
-                    LargeDataView(metric: AppStrings.reloadSpeedMetric, data: AppStrings.reloadSpeed, unitMesure: AppStrings.secUnit)
-                    LargeDataView(metric: AppStrings.magazineMetric, data: AppStrings.magazineSize, unitMesure: AppStrings.rdsUnit)
+                if let stats = weapon.weaponStats {
+                    // Damage ranges row
+                    if let dmg = firstDamageRange {
+                        HStack(spacing: 10) {
+                            ShortDataView(metric: "HEAD", data: String(format: "%.0f", dmg.headDamage))
+                            ShortDataView(metric: "BODY", data: String(format: "%.0f", dmg.bodyDamage))
+                            ShortDataView(metric: "LEGS", data: String(format: "%.0f", dmg.legDamage))
+                        }
+                        Divider()
+                    }
+                    HStack(spacing: 10) {
+                        LargeDataView(metric: "FIRE RATE", data: String(format: "%.2f", stats.fireRate), unitMesure: "RDS/SEC")
+                        LargeDataView(metric: "RUN SPEED", data: String(format: "%.2f", stats.runSpeedMultiplier), unitMesure: "M/SEC")
+                        LargeDataView(metric: "EQUIP SPEED", data: String(format: "%.2f", stats.equipTimeSeconds), unitMesure: "SEC")
+                    }
+                    HStack(spacing: 10) {
+                        LargeDataView(metric: "1ST SHOT SPREAD", data: String(format: "%.2f", stats.firstBulletAccuracy), unitMesure: "DEG")
+                        LargeDataView(metric: "RELOAD SPEED", data: String(format: "%.2f", stats.reloadTimeSeconds), unitMesure: "SEC")
+                        LargeDataView(metric: "MAGAZINE", data: "\(stats.magazineSize)", unitMesure: "RDS")
+                    }
+                } else {
+                    // Melee — no stats
+                    Text("Melee weapon — no stats available")
+                        .font(.custom(FontNames.tungstenMedium, size: 18))
+                        .foregroundStyle(Color.almostWhite)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                 }
             } label: {
                 HStack {
@@ -167,29 +179,87 @@ struct WeaponFile: View {
             }
             .backgroundStyle(Color.khaki)
             .cornerRadius(20)
-            
-            GroupBox {
-                ChromasCarrousel()
-            } label: {
-                HStack {
-                    Spacer()
-                    Text(AppStrings.chromasGroupBoxLabel)
-                        .foregroundColor(Color.deepRed)
-                        .font(.custom(FontNames.tungstenSemiBold, size: 20))
-                    Spacer()
+
+            // Skins carousel
+            if let skins = weapon.skins, !skins.isEmpty {
+                GroupBox {
+                    WeaponSkinsCarousel(skins: skins)
+                } label: {
+                    HStack {
+                        Spacer()
+                        Text(AppStrings.chromasGroupBoxLabel)
+                            .foregroundColor(Color.deepRed)
+                            .font(.custom(FontNames.tungstenSemiBold, size: 20))
+                        Spacer()
+                    }
                 }
+                .backgroundStyle(Color.khaki)
+                .cornerRadius(20)
             }
-            .backgroundStyle(Color.khaki)
-            .cornerRadius(20)
         }
         .padding()
         .sheet(isPresented: $isPresentingSheet) {
-            SearchWeaponSkin(weapons: viewModel.weapons, selectedWeaponDisplayName: $selectedSkinDisplayName)
-                .presentationDetents([.medium])
-                .interactiveDismissDisabled()
+            SearchWeaponSkin(
+                weapons: weapon.skins.flatMap { $0.compactMap { skin in
+                    Weapon(
+                        uuid: skin.uuid,
+                        displayName: skin.displayName ?? skin.uuid,
+                        category: weapon.category,
+                        displayIcon: skin.displayIcon
+                    )
+                }} ?? [],
+                selectedWeaponDisplayName: $selectedSkinDisplayName
+            )
+            .presentationDetents([.medium])
+            .interactiveDismissDisabled()
         }
     }
 }
+
+// MARK: - Weapon Skins Carousel
+
+struct WeaponSkinsCarousel: View {
+    let skins: [WeaponSkin]
+    @State private var selection = 0
+
+    var body: some View {
+        TabView(selection: $selection) {
+            ForEach(skins.indices, id: \.self) { index in
+                let skin = skins[index]
+                VStack(spacing: 4) {
+                    CachedAsyncImage(url: URL(string: skin.displayIcon ?? "")) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image.resizable().scaledToFit()
+                        case .failure, .empty:
+                            Image(systemName: "photo")
+                                .resizable().scaledToFit()
+                                .foregroundStyle(Color.gray.opacity(0.5))
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                    .frame(height: 80)
+                    Text(skin.displayName ?? "")
+                        .font(.custom(FontNames.tungstenMedium, size: 14))
+                        .foregroundStyle(Color.almostWhite)
+                        .lineLimit(1)
+                        .padding(.horizontal, 4)
+                }
+                .padding()
+                .background(Color.deepRed.opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .tag(index)
+            }
+        }
+        .tabViewStyle(PageTabViewStyle())
+        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
+        .frame(height: 160)
+        .cornerRadius(20)
+    }
+}
+
+// MARK: - ShortDataView
 
 struct ShortDataView: View {
     let metric: String
@@ -211,6 +281,8 @@ struct ShortDataView: View {
         .clipShape(RoundedCorner(radius: 10, corners: .allCorners))
     }
 }
+
+// MARK: - LargeDataView
 
 struct LargeDataView: View {
     let metric: String
@@ -241,41 +313,7 @@ struct LargeDataView: View {
     }
 }
 
-struct ChromasCarrousel: View {
-    @State private var selection = 0
-    
-    var body: some View {
-        TabView(selection : $selection) {
-            ForEach(AppStrings.chromaImageNames.indices, id: \.self) { index in
-                ChromaCard(imageName: AppStrings.chromaImageNames[index])
-                    .tag(index)
-            }
-        }
-        .tabViewStyle(PageTabViewStyle())
-        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .interactive))
-        .frame(height: 250)
-        .cornerRadius(20)
-    }
-}
-
-struct ChromaCard: View {
-    let imageName: String
-
-    var body: some View {
-        VStack {
-            Image(imageName)
-                .resizable()
-                .scaledToFill()
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .clipped()
-        }
-        .padding()
-        .background(Color.red.opacity(0.7))
-        .clipShape(RoundedRectangle(cornerRadius: 15))
-    }
-}
-
-// MARK: - Search View
+// MARK: - Search Weapon Skin Sheet
 struct SearchWeaponSkin: View {
     @Environment(\.dismiss) var dismiss
     
@@ -304,28 +342,24 @@ struct SearchWeaponSkin: View {
                                     .foregroundColor(.accentColor)
                             }
                         }
-                        
                         .onTapGesture {
                             selectedWeaponDisplayName = weapon.displayName
-                             dismiss()
+                            dismiss()
                         }
                     }
                 }
                 .padding(.horizontal)
                 .listStyle(.plain)
-                
             }
             .toolbarTitleDisplayMode(.inline)
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text(AppStrings.searchPrompt))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        dismiss()
-                    }, label: {
+                    Button(action: { dismiss() }) {
                         Text(AppStrings.doneButton)
                             .font(.custom(FontNames.tungstenMedium, size: 25))
                             .foregroundStyle(Color.black)
-                    })
+                    }
                 }
                 ToolbarItem(placement: .principal) {
                     Text(AppStrings.searchNavigationTitle)

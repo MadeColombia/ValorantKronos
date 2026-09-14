@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MainView: View {
     var body: some View {
-        NavigationView(content: {
+        NavigationStack {
             ZStack {
                 Color.slightlyBlack
                     .ignoresSafeArea()
@@ -28,7 +28,7 @@ struct MainView: View {
                     .scrollIndicators(.hidden)
                 }
             }
-        })
+        }
     }
 }
 

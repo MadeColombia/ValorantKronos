@@ -16,30 +16,66 @@ struct MapsView: View {
         ZStack {
             Color.almostWhite.ignoresSafeArea()
             
-            ScrollView {
-                VStack(spacing: 0) {
-                    // This GeometryReader tracks the scroll position to fade the title.
-                    GeometryReader { geo in
-                        let scrollOffset = geo.frame(in: .global).minY
-                        Color.clear
-                            .onChange(of: scrollOffset) { _, newOffset in
-                                showPrincipalTitle = newOffset <= 40
-                            }
-                    }
-                    .hidden()
-
-                    Text("MAPS")
-                        .font(.custom(FontNames.tungstenBold, size: 64))
-                        .foregroundStyle(Color.black)
+            if viewModel.isLoading {
+                ProgressView("Loading maps…")
+                    .tint(Color.slightlyBlack)
+            } else if let errorMessage = viewModel.errorMessage {
+                VStack(spacing: 16) {
+                    Image(systemName: "wifi.slash")
+                        .font(.system(size: 44))
+                        .foregroundStyle(Color.gray)
+                    Text(errorMessage)
+                        .font(.custom(FontNames.tungstenMedium, size: 20))
+                        .foregroundStyle(Color.slightlyBlack)
+                        .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .opacity(showPrincipalTitle ? 0 : 1)
-                    
-                    CardCarrousel(maps: viewModel.maps)
-                        .padding(.vertical, 30)
+                    Button {
+                        Task { await viewModel.loadMaps(forceRefresh: true) }
+                    } label: {
+                        Text("RETRY")
+                            .font(.custom(FontNames.tungstenBold, size: 22))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 32)
+                            .padding(.vertical, 10)
+                            .background(Color.slightlyBlack)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
                 }
+            } else if viewModel.maps.isEmpty {
+                VStack(spacing: 8) {
+                    Image(systemName: "map")
+                        .font(.system(size: 44))
+                        .foregroundStyle(Color.gray.opacity(0.5))
+                    Text("No maps available")
+                        .font(.custom(FontNames.tungstenMedium, size: 22))
+                        .foregroundStyle(Color.gray)
+                }
+            } else {
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // This GeometryReader tracks the scroll position to fade the title.
+                        GeometryReader { geo in
+                            let scrollOffset = geo.frame(in: .global).minY
+                            Color.clear
+                                .onChange(of: scrollOffset) { _, newOffset in
+                                    showPrincipalTitle = newOffset <= 40
+                                }
+                        }
+                        .hidden()
+
+                        Text("MAPS")
+                            .font(.custom(FontNames.tungstenBold, size: 64))
+                            .foregroundStyle(Color.black)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .opacity(showPrincipalTitle ? 0 : 1)
+                        
+                        CardCarrousel(maps: viewModel.maps)
+                            .padding(.vertical, 30)
+                    }
+                }
+                .scrollIndicators(.automatic)
             }
-            .scrollIndicators(.automatic)
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)

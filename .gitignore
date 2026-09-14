@@ -132,7 +132,7 @@ Dependencies/
 ### SwiftPackageManager ###
 Packages
 xcuserdata
-*.xcodeproj
+# *.xcodeproj  # too broad — would ignore the main project file; fine-grained rules below handle this
 
 
 ### Xcode ###

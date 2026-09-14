@@ -1,7 +1,7 @@
-[
-    {
-        "status": 200,
-        "data": {
+{
+    "status": 200,
+    "data": [
+        {
             "uuid": "320b2a48-4d9b-a075-30f1-1f93a9b638fa",
             "displayName": "Sova",
             "description": "Born from the eternal winter of Russia's tundra, Sova tracks, finds, and eliminates enemies with ruthless efficiency and precision. His custom bow and incredible scouting abilities ensure that even if you run, you cannot hide. ",
@@ -71,5 +71,5 @@
             ],
             "voiceLine": null
         }
-    }
-]
+    ]
+}

@@ -105,37 +105,57 @@ final class SearchViewModel: ObservableObject, StateManageableViewModel {
     
     // MARK: - Initializer
     
+    private let repository: ValorantRepositoryProtocol
+    
     init(
         agents: [Agent] = [],
         weapons: [Weapon] = [],
-        maps: [Map] = []
+        maps: [Map] = [],
+        repository: ValorantRepositoryProtocol = ValorantRepository.shared
     ) {
-        self.allAgents = agents
-        self.allWeapons = weapons
-        self.allMaps = maps.filter { $0.displayIcon != nil }
+        self.repository = repository
         if !agents.isEmpty || !weapons.isEmpty || !maps.isEmpty {
+            self.allAgents = agents
+            self.allWeapons = weapons
+            self.allMaps = maps.filter { $0.displayIcon != nil }
+        } else {
+            self.allAgents = repository.fetchAgentsFromStorage()
+            self.allWeapons = repository.fetchWeaponsFromStorage()
+            self.allMaps = repository.fetchMapsFromStorage().filter { $0.displayIcon != nil }
+        }
+        if isDataLoaded {
             filterResults()
         }
     }
     
     // MARK: - Networking & Data Loading
 
-    /// Loads agents, weapons, and maps.
-    /// 1. Reads the disk cache synchronously — results appear instantly, no spinner.
-    /// 2. If data is stale (>24h) or forceRefresh, fires a background network refresh.
+    /// Loads agents, weapons, and maps from Core Data repository or disk cache.
     func loadAllData(forceRefresh: Bool = false) async {
-        // --- Step 1: Instant cache read (no async, no spinner) ---
+        // --- Step 1: Instant Core Data or Cache read ---
         if !forceRefresh && allAgents.isEmpty {
-            if let cachedAgents: [Agent] = DataCache.shared.retrieve(forKey: "agents") {
+            let storedAgents = repository.fetchAgentsFromStorage()
+            let storedWeapons = repository.fetchWeaponsFromStorage()
+            let storedMaps = repository.fetchMapsFromStorage().filter { $0.displayIcon != nil }
+            
+            if !storedAgents.isEmpty {
+                self.allAgents = storedAgents
+            } else if let cachedAgents: [Agent] = DataCache.shared.retrieve(forKey: "agents") {
                 self.allAgents = cachedAgents
             }
-            if let cachedWeapons: [Weapon] = DataCache.shared.retrieve(forKey: "weapons") {
+            
+            if !storedWeapons.isEmpty {
+                self.allWeapons = storedWeapons
+            } else if let cachedWeapons: [Weapon] = DataCache.shared.retrieve(forKey: "weapons") {
                 self.allWeapons = cachedWeapons
             }
-            if let cachedMaps: [Map] = DataCache.shared.retrieve(forKey: "maps") {
+            
+            if !storedMaps.isEmpty {
+                self.allMaps = storedMaps
+            } else if let cachedMaps: [Map] = DataCache.shared.retrieve(forKey: "maps") {
                 self.allMaps = cachedMaps.filter { $0.displayIcon != nil }
             }
-            // Show cached results immediately
+            
             if isDataLoaded { filterResults() }
         }
 

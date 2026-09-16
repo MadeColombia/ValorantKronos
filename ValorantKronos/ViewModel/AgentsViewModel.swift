@@ -66,9 +66,32 @@ final class AgentsViewModel: ObservableObject, StateManageableViewModel {
     @Published var agents: [Agent] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var nonBlockingAlertMessage: String? = nil
     @Published var selectedRoleFilter: String = "ALL AGENTS"
     @Published var agentFilterOptions: [String: String] = ["ALL AGENTS": "ALL AGENTS"]
     @Published var searchText: String = ""
+
+    private let repository: ValorantRepositoryProtocol
+    private let apiService: APIServiceProtocol
+
+    public init(
+        agents: [Agent]? = nil,
+        repository: ValorantRepositoryProtocol = ValorantRepository.shared,
+        apiService: APIServiceProtocol = APIService.shared
+    ) {
+        self.repository = repository
+        self.apiService = apiService
+        
+        if let initialAgents = agents {
+            self.agents = initialAgents
+        } else {
+            let stored = repository.fetchAgentsFromStorage()
+            if !stored.isEmpty {
+                self.agents = stored
+            }
+        }
+        updateFilterOptions()
+    }
 
     /// Returns `true` if the underlying agents collection is empty.
     var isEmpty: Bool {
@@ -113,32 +136,61 @@ final class AgentsViewModel: ObservableObject, StateManageableViewModel {
         }
     }
 
-    /// Fetches agents from API or cache, managing state transitions safely.
+    /// Fetches agents from Core Data or API, managing state transitions safely.
     func loadAgents(forceRefresh: Bool = false) async {
+        if !forceRefresh && !agents.isEmpty {
+            return
+        }
+
+        // If local data exists and we are not forcing refresh, hydrate immediately
+        if agents.isEmpty {
+            let stored = repository.fetchAgentsFromStorage()
+            if !stored.isEmpty {
+                self.agents = stored
+                updateFilterOptions()
+                if !forceRefresh { return }
+            }
+        }
+
         guard !isLoading else { return }
-        isLoading = true
-        errorMessage = nil
+        if agents.isEmpty {
+            isLoading = true
+            errorMessage = nil
+        }
         defer { isLoading = false }
 
         do {
-            let fetchedAgents = try await Agent.fetchAgents(forceRefresh: forceRefresh)
-            agents = fetchedAgents
-
-            // Atomically populate filter options
-            let roles = self.agentsByRole().keys
-            var options: [String: String] = ["ALL AGENTS": "ALL AGENTS"]
-            for role in roles {
-                options[role] = "\(role.uppercased())S"
-            }
-            self.agentFilterOptions = options
+            let parameters = ["isPlayableCharacter": "true"]
+            let fetchedAgents: [Agent] = try await apiService.fetch(endpoint: "agents", parameters: parameters)
+            try await repository.syncAgents(fetchedAgents)
+            
+            self.agents = fetchedAgents
+            updateFilterOptions()
+            self.nonBlockingAlertMessage = nil
+            self.errorMessage = nil
         } catch {
-            errorMessage = "Failed to load agents: \(error.userFriendlyMessage)"
+            if agents.isEmpty {
+                errorMessage = "Failed to load agents: \(error.userFriendlyMessage)"
+            } else {
+                nonBlockingAlertMessage = "Unable to refresh agents: \(error.userFriendlyMessage)"
+            }
         }
     }
 
+    public func clearNonBlockingAlert() {
+        nonBlockingAlertMessage = nil
+    }
+
+    private func updateFilterOptions() {
+        let roles = self.agentsByRole().keys
+        var options: [String: String] = ["ALL AGENTS": "ALL AGENTS"]
+        for role in roles {
+            options[role] = "\(role.uppercased())S"
+        }
+        self.agentFilterOptions = options
+    }
+
     /// Groups agents by their role's display name.
-    /// - Returns: A dictionary where keys are role display names and values are arrays of agents with that role.
-    /// - If an agent has no role, it will be grouped under "Unknown".
     func agentsByRole() -> [String: [Agent]] {
         return Dictionary(grouping: agents) { $0.role?.displayName ?? "Unknown" }
     }

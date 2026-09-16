@@ -27,7 +27,7 @@ struct AgentsView: View {
     private let overlayLightShadowColor = Color.white
 
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Color.almostWhite.ignoresSafeArea()
 
             if viewModel.isLoading {
@@ -56,6 +56,13 @@ struct AgentsView: View {
                 }
             } else {
                 contentView
+            }
+            
+            if let alert = viewModel.nonBlockingAlertMessage {
+                NonBlockingBannerView(message: alert, isWarning: true) {
+                    viewModel.clearNonBlockingAlert()
+                }
+                .padding(.top, 10)
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -92,6 +99,9 @@ struct AgentsView: View {
                                }
                 .padding(.horizontal, 10)
             }
+        }
+        .refreshable {
+            await viewModel.loadAgents(forceRefresh: true)
         }
     }
 

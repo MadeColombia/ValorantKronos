@@ -12,6 +12,8 @@ import XCTest
 @MainActor
 final class SearchViewModelTests: XCTestCase {
     
+    private var persistence: PersistenceController!
+    private var repository: ValorantRepository!
     private var viewModel: SearchViewModel!
     
     override func setUp() {
@@ -19,7 +21,9 @@ final class SearchViewModelTests: XCTestCase {
         MockURLProtocol.reset()
         URLProtocol.registerClass(MockURLProtocol.self)
         DataCache.shared.clearCache()
-        viewModel = SearchViewModel()
+        persistence = PersistenceController(inMemory: true)
+        repository = ValorantRepository(persistenceController: persistence)
+        viewModel = SearchViewModel(agents: [], weapons: [], maps: [], repository: repository)
     }
     
     override func tearDown() {
@@ -27,6 +31,8 @@ final class SearchViewModelTests: XCTestCase {
         MockURLProtocol.reset()
         DataCache.shared.clearCache()
         viewModel = nil
+        repository = nil
+        persistence = nil
         super.tearDown()
     }
     

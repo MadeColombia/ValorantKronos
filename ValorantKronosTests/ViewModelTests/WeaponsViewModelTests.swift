@@ -6,13 +6,14 @@
 import XCTest
 @testable import ValorantKronos
 
+@MainActor
 final class WeaponsViewModelTests: XCTestCase {
     
     private var viewModel: WeaponsViewModel!
     
     override func setUp() {
         super.setUp()
-        viewModel = WeaponsViewModel()
+        viewModel = WeaponsViewModel(weapons: Array(repeating: mockWeapon, count: 40))
     }
     
     override func tearDown() {
@@ -152,5 +153,35 @@ final class WeaponsViewModelTests: XCTestCase {
         
         XCTAssertEqual(filtered.count, 1)
         XCTAssertEqual(filtered.first?.displayName, "Vandal")
+    }
+    
+    func testWeaponsViewModel_repositoryIntegration() async {
+        let persistence = PersistenceController(inMemory: true)
+        let repository = ValorantRepository(persistenceController: persistence)
+        let testWeapon = Weapon(uuid: "w-repo", displayName: "Ares", category: "Heavy")
+        try? await repository.syncWeapons([testWeapon])
+        
+        let localVM = WeaponsViewModel(repository: repository)
+        XCTAssertEqual(localVM.weapons.count, 1)
+        XCTAssertEqual(localVM.weapons.first?.displayName, "Ares")
+        XCTAssertNil(localVM.errorMessage)
+    }
+    
+    func testWeaponsViewModel_refreshErrorWithExistingData_setsNonBlockingAlert() async {
+        let persistence = PersistenceController(inMemory: true)
+        let repository = ValorantRepository(persistenceController: persistence)
+        let testWeapon = Weapon(uuid: "w-repo", displayName: "Ares", category: "Heavy")
+        try? await repository.syncWeapons([testWeapon])
+        
+        let mockService = MockAPIService()
+        mockService.shouldThrowError = true
+        mockService.errorToThrow = .requestFailed(URLError(.notConnectedToInternet))
+        
+        let localVM = WeaponsViewModel(repository: repository, service: mockService)
+        await localVM.loadWeapons(forceRefresh: true)
+        
+        XCTAssertEqual(localVM.weapons.count, 1)
+        XCTAssertNil(localVM.errorMessage)
+        XCTAssertNotNil(localVM.nonBlockingAlertMessage)
     }
 }

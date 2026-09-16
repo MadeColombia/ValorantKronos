@@ -90,7 +90,9 @@ public class WeaponsViewModel: ObservableObject, StateManageableViewModel {
     @Published public var weapons: [Weapon] = []
     @Published public var isLoading: Bool = false
     @Published public var errorMessage: String? = nil
+    @Published public var nonBlockingAlertMessage: String? = nil
     
+    private let repository: ValorantRepositoryProtocol
     private let service: APIServiceProtocol
     
     /// Returns `true` if the underlying weapons collection is empty.
@@ -98,26 +100,64 @@ public class WeaponsViewModel: ObservableObject, StateManageableViewModel {
         weapons.isEmpty
     }
     
-    public init(weapons: [Weapon] = [], service: APIServiceProtocol = APIService.shared) {
-        self.weapons = weapons
+    public init(
+        weapons: [Weapon]? = nil,
+        repository: ValorantRepositoryProtocol = ValorantRepository.shared,
+        service: APIServiceProtocol = APIService.shared
+    ) {
+        self.repository = repository
         self.service = service
+        
+        if let initialWeapons = weapons {
+            self.weapons = initialWeapons
+        } else {
+            let stored = repository.fetchWeaponsFromStorage()
+            if !stored.isEmpty {
+                self.weapons = stored
+            }
+        }
     }
     
     // MARK: - Data Loading
     
-    /// Loads weapons dynamically from API service with DataCache fallback.
+    /// Loads weapons dynamically from Core Data or API with non-blocking error handling.
     public func loadWeapons(forceRefresh: Bool = false) async {
+        if !forceRefresh && !weapons.isEmpty {
+            return
+        }
+        
+        if weapons.isEmpty {
+            let stored = repository.fetchWeaponsFromStorage()
+            if !stored.isEmpty {
+                self.weapons = stored
+                if !forceRefresh { return }
+            }
+        }
+        
         guard !isLoading else { return }
-        isLoading = true
-        errorMessage = nil
+        if weapons.isEmpty {
+            isLoading = true
+            errorMessage = nil
+        }
         defer { isLoading = false }
         
         do {
-            let fetchedWeapons = try await Weapon.fetchWeapons(forceRefresh: forceRefresh, service: service)
+            let fetchedWeapons: [Weapon] = try await service.fetch(endpoint: "weapons", parameters: nil)
+            try await repository.syncWeapons(fetchedWeapons)
             self.weapons = fetchedWeapons
+            self.nonBlockingAlertMessage = nil
+            self.errorMessage = nil
         } catch {
-            self.errorMessage = "Failed to load weapons: \(error.userFriendlyMessage)"
+            if weapons.isEmpty {
+                self.errorMessage = "Failed to load weapons: \(error.userFriendlyMessage)"
+            } else {
+                self.nonBlockingAlertMessage = "Unable to refresh weapons: \(error.userFriendlyMessage)"
+            }
         }
+    }
+    
+    public func clearNonBlockingAlert() {
+        nonBlockingAlertMessage = nil
     }
     
     // MARK: - Computed Properties & Filtering

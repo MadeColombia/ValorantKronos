@@ -9,11 +9,15 @@ import XCTest
 @MainActor
 final class MapsViewModelTests: XCTestCase {
     
+    private var persistence: PersistenceController!
+    private var repository: ValorantRepository!
     private var viewModel: MapsViewModel!
     
     override func setUp() {
         super.setUp()
-        viewModel = MapsViewModel()
+        persistence = PersistenceController(inMemory: true)
+        repository = ValorantRepository(persistenceController: persistence)
+        viewModel = MapsViewModel(maps: [], repository: repository)
         MockURLProtocol.reset()
         URLProtocol.registerClass(MockURLProtocol.self)
         DataCache.shared.clearCache()
@@ -24,6 +28,8 @@ final class MapsViewModelTests: XCTestCase {
         MockURLProtocol.reset()
         DataCache.shared.clearCache()
         viewModel = nil
+        repository = nil
+        persistence = nil
         super.tearDown()
     }
     
@@ -147,15 +153,26 @@ final class MapsViewModelTests: XCTestCase {
         XCTAssertEqual(filtered.first?.displayName, "Haven")
     }
     
-    func testMapsViewModel_cacheIntegration() async {
+    func testMapsViewModel_repositoryIntegration() async {
         let cachedMap = mockMap
-        DataCache.shared.cache([cachedMap], forKey: "maps")
+        try? await repository.syncMaps([cachedMap])
         
-        // Load without network mocking — should read from cache
-        await viewModel.loadMaps(forceRefresh: false)
+        let localVM = MapsViewModel(repository: repository)
+        XCTAssertEqual(localVM.maps.count, 1)
+        XCTAssertEqual(localVM.maps.first?.displayName, mockMap.displayName)
+        XCTAssertNil(localVM.errorMessage)
+    }
+    
+    func testMapsViewModel_refreshErrorWithExistingData_setsNonBlockingAlert() async {
+        let cachedMap = mockMap
+        try? await repository.syncMaps([cachedMap])
+        let localVM = MapsViewModel(repository: repository)
         
-        XCTAssertEqual(viewModel.maps.count, 1)
-        XCTAssertEqual(viewModel.maps.first?.displayName, mockMap.displayName)
-        XCTAssertNil(viewModel.errorMessage)
+        MockURLProtocol.mockError = URLError(.notConnectedToInternet)
+        await localVM.loadMaps(forceRefresh: true)
+        
+        XCTAssertEqual(localVM.maps.count, 1)
+        XCTAssertNil(localVM.errorMessage)
+        XCTAssertNotNil(localVM.nonBlockingAlertMessage)
     }
 }

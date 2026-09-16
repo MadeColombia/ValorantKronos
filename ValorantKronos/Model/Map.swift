@@ -7,20 +7,20 @@
 
 import Foundation
 
-class Map: Codable, Identifiable {
+public class Map: Codable, Identifiable {
     
 /// Note: The Map model represents a game map in Valorant, the commented variables are not currently used but may be useful in the future for additional map details.
-    var uuid: String
-    var displayName: String
+    public var uuid: String
+    public var displayName: String
 //    var narrativeDescription: String?
 //    var tacticalDescription: String?
-    var coordinates: String?
-    var displayIcon: String?
+    public var coordinates: String?
+    public var displayIcon: String?
 //    var listViewIcon: String?
-    var listViewIconTall: String?
-    var splash: String?
+    public var listViewIconTall: String?
+    public var splash: String?
 //    var stylizedBackgroundImage: String?
-    var premierBackgroundImage: String?
+    public var premierBackgroundImage: String?
 //    var callouts: [Callout]?
 
 //    struct Callout: Codable, Hashable {
@@ -34,7 +34,7 @@ class Map: Codable, Identifiable {
 //        let y: Double
 //    }
     
-    init(uuid: String, displayName: String, coordinates: String? = nil, displayIcon: String? = nil, listViewIconTall: String? = nil, splash: String? = nil, premierBackgroundImage: String? = nil) {
+    public init(uuid: String, displayName: String, coordinates: String? = nil, displayIcon: String? = nil, listViewIconTall: String? = nil, splash: String? = nil, premierBackgroundImage: String? = nil) {
         self.uuid = uuid
         self.displayName = displayName
         self.coordinates = coordinates

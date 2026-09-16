@@ -13,7 +13,7 @@ struct WeaponsView: View {
     // Removed unused 'weapons' property NEED TO BE ADDED BACK LATER
     
     var body: some View {
-            ZStack {
+            ZStack(alignment: .top) {
                 Color.deepRed
                     .ignoresSafeArea()
 
@@ -61,10 +61,20 @@ struct WeaponsView: View {
                                 )
                             }
                         }
+                        .refreshable {
+                            await viewModel.loadWeapons(forceRefresh: true)
+                        }
                         .scrollIndicators(.hidden)
                         .scrollTargetBehavior(.viewAligned)
                     }
                     .padding(.horizontal, 20)
+                    .padding(.top, 10)
+                }
+                
+                if let alert = viewModel.nonBlockingAlertMessage {
+                    NonBlockingBannerView(message: alert, isWarning: true) {
+                        viewModel.clearNonBlockingAlert()
+                    }
                     .padding(.top, 10)
                 }
             }

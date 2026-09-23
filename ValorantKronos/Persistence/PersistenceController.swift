@@ -75,7 +75,6 @@ public final class PersistenceController {
         agentUuid.name = "uuid"
         agentUuid.attributeType = .stringAttributeType
         agentUuid.isOptional = false
-        agentUuid.isIndexed = true
         
         let agentDisplayName = NSAttributeDescription()
         agentDisplayName.name = "displayName"
@@ -132,6 +131,12 @@ public final class PersistenceController {
             agentFullPortrait, agentBackground, agentIsPlayable, agentRoleJSON,
             agentAbilitiesJSON, agentPayloadJSON, agentUpdatedAt
         ]
+        agentEntity.indexes = [
+            NSFetchIndexDescription(
+                name: "agentUuidIndex",
+                elements: [NSFetchIndexElementDescription(property: agentUuid, collationType: .binary)]
+            )
+        ]
         
         // --- WeaponEntity ---
         let weaponEntity = NSEntityDescription()
@@ -142,7 +147,6 @@ public final class PersistenceController {
         weaponUuid.name = "uuid"
         weaponUuid.attributeType = .stringAttributeType
         weaponUuid.isOptional = false
-        weaponUuid.isIndexed = true
         
         let weaponDisplayName = NSAttributeDescription()
         weaponDisplayName.name = "displayName"
@@ -188,6 +192,12 @@ public final class PersistenceController {
             weaponUuid, weaponDisplayName, weaponCategory, weaponDisplayIcon,
             weaponStatsJSON, weaponShopDataJSON, weaponSkinsJSON, weaponPayloadJSON, weaponUpdatedAt
         ]
+        weaponEntity.indexes = [
+            NSFetchIndexDescription(
+                name: "weaponUuidIndex",
+                elements: [NSFetchIndexElementDescription(property: weaponUuid, collationType: .binary)]
+            )
+        ]
         
         // --- MapEntity ---
         let mapEntity = NSEntityDescription()
@@ -198,7 +208,6 @@ public final class PersistenceController {
         mapUuid.name = "uuid"
         mapUuid.attributeType = .stringAttributeType
         mapUuid.isOptional = false
-        mapUuid.isIndexed = true
         
         let mapDisplayName = NSAttributeDescription()
         mapDisplayName.name = "displayName"
@@ -243,6 +252,12 @@ public final class PersistenceController {
         mapEntity.properties = [
             mapUuid, mapDisplayName, mapCoordinates, mapDisplayIcon,
             mapListViewIconTall, mapSplash, mapPremierBg, mapPayloadJSON, mapUpdatedAt
+        ]
+        mapEntity.indexes = [
+            NSFetchIndexDescription(
+                name: "mapUuidIndex",
+                elements: [NSFetchIndexElementDescription(property: mapUuid, collationType: .binary)]
+            )
         ]
         
         model.entities = [agentEntity, weaponEntity, mapEntity]

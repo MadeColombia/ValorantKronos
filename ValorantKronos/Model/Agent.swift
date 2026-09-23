@@ -7,22 +7,22 @@
 
 import Foundation
 
-class Agent: Codable, Identifiable {
+public class Agent: Codable, Identifiable {
     
-    var uuid: String
-    var displayName: String
-    var developerName: String
-    var description: String
+    public var uuid: String
+    public var displayName: String
+    public var developerName: String
+    public var description: String
     
-    var fullPortrait: String?
-    var background: String?
+    public var fullPortrait: String?
+    public var background: String?
     
-    var isPlayableCharacter: Bool? = false
+    public var isPlayableCharacter: Bool? = false
     
-    var role: Role?
-    var abilities: [Ability]
+    public var role: Role?
+    public var abilities: [Ability]
     
-    init(uuid: String, displayName: String, developerName: String? ,description: String, fullPortrait: String?, background: String?, isPlayableCharacter: Bool?, role: Role?, abilities: [Ability]) {
+    public init(uuid: String, displayName: String, developerName: String? ,description: String, fullPortrait: String?, background: String?, isPlayableCharacter: Bool?, role: Role?, abilities: [Ability]) {
         self.uuid = uuid
         self.displayName = displayName
         self.developerName = developerName ?? "Unknown"
@@ -35,33 +35,60 @@ class Agent: Codable, Identifiable {
     
 }
 
-class Role: Codable, Identifiable {
+public class Role: Codable, Identifiable {
     
-    var id: String?
-    var displayName: String?
+    public var id: String?
+    public var displayName: String?
+    public var description: String?
+    public var displayIcon: String?
     
-    var description: String?
+    enum CodingKeys: String, CodingKey {
+        case id
+        case uuid
+        case displayName
+        case description
+        case displayIcon
+    }
     
-    var displayIcon: String?
-    
-    init(id: String? = nil, displayName: String? = nil, description: String? = nil, displayIcon: String? = nil) {
+    public init(id: String? = nil, displayName: String? = nil, description: String? = nil, displayIcon: String? = nil) {
         self.id = id
         self.displayName = displayName?.capitalized
         self.description = description
         self.displayIcon = displayIcon
     }
+    
+    public required init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let uuidVal = try? container.decodeIfPresent(String.self, forKey: .uuid) {
+            self.id = uuidVal
+        } else {
+            self.id = try? container.decodeIfPresent(String.self, forKey: .id)
+        }
+        self.displayName = (try? container.decodeIfPresent(String.self, forKey: .displayName))?.capitalized
+        self.description = try? container.decodeIfPresent(String.self, forKey: .description)
+        self.displayIcon = try? container.decodeIfPresent(String.self, forKey: .displayIcon)
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(id, forKey: .uuid)
+        try container.encodeIfPresent(id, forKey: .id)
+        try container.encodeIfPresent(displayName, forKey: .displayName)
+        try container.encodeIfPresent(description, forKey: .description)
+        try container.encodeIfPresent(displayIcon, forKey: .displayIcon)
+    }
 }
 
-class Ability: Codable, Identifiable {
+public class Ability: Codable, Identifiable {
     
-    var slot: String
-    var displayName: String
+    public var slot: String
+    public var displayName: String
     
-    var description: String
+    public var description: String
     
-    var displayIcon: String?
+    public var displayIcon: String?
     
-    init(slot: String, displayName: String, description: String, displayIcon: String? = nil) {
+    public init(slot: String, displayName: String, description: String, displayIcon: String? = nil) {
         self.slot = slot
         self.displayName = displayName
         self.description = description

@@ -159,6 +159,25 @@ public struct WeaponStats: Codable, Hashable, Sendable {
         self.damageRanges = damageRanges
     }
     
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.fireRate = try container.decode(Double.self, forKey: .fireRate)
+        self.magazineSize = try container.decode(Int.self, forKey: .magazineSize)
+        self.runSpeedMultiplier = try container.decode(Double.self, forKey: .runSpeedMultiplier)
+        self.equipTimeSeconds = try container.decode(Double.self, forKey: .equipTimeSeconds)
+        self.reloadTimeSeconds = try container.decode(Double.self, forKey: .reloadTimeSeconds)
+        self.firstBulletAccuracy = (try? container.decodeIfPresent(Double.self, forKey: .firstBulletAccuracy)) ?? 0.8
+        self.shotgunPelletCount = (try? container.decodeIfPresent(Int.self, forKey: .shotgunPelletCount)) ?? 1
+        self.wallPenetration = (try? container.decodeIfPresent(String.self, forKey: .wallPenetration)) ?? "EWallPenetrationDisplayType::Medium"
+        self.feature = try? container.decodeIfPresent(String.self, forKey: .feature)
+        self.fireMode = try? container.decodeIfPresent(String.self, forKey: .fireMode)
+        self.altFireType = try? container.decodeIfPresent(String.self, forKey: .altFireType)
+        self.adsStats = try? container.decodeIfPresent(AdsStats.self, forKey: .adsStats)
+        self.altShotgunStats = try? container.decodeIfPresent(AltShotgunStats.self, forKey: .altShotgunStats)
+        self.airBurstStats = try? container.decodeIfPresent(AirBurstStats.self, forKey: .airBurstStats)
+        self.damageRanges = (try? container.decodeIfPresent([DamageRange].self, forKey: .damageRanges)) ?? []
+    }
+    
     // Legacy initializer for single damage range
     public init(
         fireRate: Double,

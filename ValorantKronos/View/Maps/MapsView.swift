@@ -13,7 +13,7 @@ struct MapsView: View {
     @State private var showPrincipalTitle = false
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: .top) {
             Color.almostWhite.ignoresSafeArea()
             
             if viewModel.isLoading {
@@ -74,7 +74,17 @@ struct MapsView: View {
                             .padding(.vertical, 30)
                     }
                 }
+                .refreshable {
+                    await viewModel.loadMaps(forceRefresh: true)
+                }
                 .scrollIndicators(.automatic)
+            }
+            
+            if let alert = viewModel.nonBlockingAlertMessage {
+                NonBlockingBannerView(message: alert, isWarning: true) {
+                    viewModel.clearNonBlockingAlert()
+                }
+                .padding(.top, 10)
             }
         }
         .navigationBarBackButtonHidden(true)

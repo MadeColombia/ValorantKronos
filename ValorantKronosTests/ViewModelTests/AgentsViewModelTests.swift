@@ -9,11 +9,15 @@ import XCTest
 @MainActor
 final class AgentsViewModelTests: XCTestCase {
     
+    private var persistence: PersistenceController!
+    private var repository: ValorantRepository!
     private var viewModel: AgentsViewModel!
     
     override func setUp() {
         super.setUp()
-        viewModel = AgentsViewModel()
+        persistence = PersistenceController(inMemory: true)
+        repository = ValorantRepository(persistenceController: persistence)
+        viewModel = AgentsViewModel(agents: [], repository: repository)
         MockURLProtocol.reset()
         URLProtocol.registerClass(MockURLProtocol.self)
         DataCache.shared.clearCache()
@@ -24,6 +28,8 @@ final class AgentsViewModelTests: XCTestCase {
         MockURLProtocol.reset()
         DataCache.shared.clearCache()
         viewModel = nil
+        repository = nil
+        persistence = nil
         super.tearDown()
     }
     
@@ -235,15 +241,26 @@ final class AgentsViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.filteredAgents.count, 5)
     }
     
-    func testAgentsViewModel_cacheIntegration() async {
+    func testAgentsViewModel_repositoryIntegration() async {
         let cachedAgent = mockAgent
-        DataCache.shared.cache([cachedAgent], forKey: "agents")
+        try? await repository.syncAgents([cachedAgent])
         
-        // Load without network mocking — should read from cache
-        await viewModel.loadAgents(forceRefresh: false)
+        let localVM = AgentsViewModel(repository: repository)
+        XCTAssertEqual(localVM.agents.count, 1)
+        XCTAssertEqual(localVM.agents.first?.displayName, mockAgent.displayName)
+        XCTAssertNil(localVM.errorMessage)
+    }
+    
+    func testAgentsViewModel_refreshErrorWithExistingData_setsNonBlockingAlert() async {
+        let cachedAgent = mockAgent
+        try? await repository.syncAgents([cachedAgent])
+        let localVM = AgentsViewModel(repository: repository)
         
-        XCTAssertEqual(viewModel.agents.count, 1)
-        XCTAssertEqual(viewModel.agents.first?.displayName, mockAgent.displayName)
-        XCTAssertNil(viewModel.errorMessage)
+        MockURLProtocol.mockError = URLError(.notConnectedToInternet)
+        await localVM.loadAgents(forceRefresh: true)
+        
+        XCTAssertEqual(localVM.agents.count, 1)
+        XCTAssertNil(localVM.errorMessage, "Should not display full-screen blocking error when cache exists")
+        XCTAssertNotNil(localVM.nonBlockingAlertMessage, "Should set nonBlockingAlertMessage")
     }
 }

@@ -142,7 +142,15 @@ struct SearchView: View {
                                 if !viewModel.matchingMaps.isEmpty {
                                     SearchSectionHeader(title: "MAPS")
                                     ForEach(viewModel.matchingMaps) { map in
-                                        MapSearchRow(map: map)
+                                        MapSearchRow(map: map) {
+                                            viewModel.selectedMap = map
+                                        }
+                                    }
+                                    .sheet(item: $viewModel.selectedMap) { map in
+                                        NavigationView {
+                                            SingleMapView(map: map)
+                                                .interactiveDismissDisabled()
+                                        }
                                     }
                                 }
                             }
@@ -318,40 +326,49 @@ private struct WeaponSearchRow: View {
 
 private struct MapSearchRow: View {
     let map: Map
+    var onTap: () -> Void
+
     var body: some View {
-        HStack(spacing: 12) {
-            CachedAsyncImage(url: URL(string: map.displayIcon ?? "")) { phase in
-                switch phase {
-                case .success(let image):
-                    image.resizable().scaledToFill().clipped()
-                case .failure, .empty:
-                    Image(systemName: "map.fill")
-                        .resizable().scaledToFit()
-                        .foregroundStyle(Color.gray)
-                        .padding(10)
-                @unknown default:
-                    EmptyView()
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                CachedAsyncImage(url: URL(string: map.displayIcon ?? "")) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill().clipped()
+                    case .failure, .empty:
+                        Image(systemName: "map.fill")
+                            .resizable().scaledToFit()
+                            .foregroundStyle(Color.gray)
+                            .padding(10)
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
-            }
-            .frame(width: 48, height: 48)
-            .background(Color.white.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+                .frame(width: 48, height: 48)
+                .background(Color.white.opacity(0.06))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(map.displayName.uppercased())
-                    .font(.custom(FontNames.tungstenBold, size: 22))
-                    .foregroundStyle(Color.white)
-                    .lineLimit(1)
-                Text("Map")
-                    .font(.custom(FontNames.tungstenMedium, size: 14))
-                    .foregroundStyle(Color.gray)
-            }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(map.displayName.uppercased())
+                        .font(.custom(FontNames.tungstenBold, size: 22))
+                        .foregroundStyle(Color.white)
+                        .lineLimit(1)
+                    Text("Map")
+                        .font(.custom(FontNames.tungstenMedium, size: 14))
+                        .foregroundStyle(Color.gray)
+                }
 
-            Spacer()
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.gray.opacity(0.5))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color.white.opacity(0.03))
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(Color.white.opacity(0.03))
+        .buttonStyle(.plain)
         Divider()
             .background(Color.white.opacity(0.07))
             .padding(.leading, 76)

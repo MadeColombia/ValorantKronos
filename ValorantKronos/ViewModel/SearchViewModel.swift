@@ -57,14 +57,18 @@ final class SearchViewModel: ObservableObject, StateManageableViewModel {
             filterResults()
         }
     }
-    
+
     @Published private(set) var matchingAgents: [Agent] = []
     @Published private(set) var matchingWeapons: [Weapon] = []
     @Published private(set) var matchingMaps: [Map] = []
-    
+
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var errorMessage: String? = nil
-    
+
+    /// The map selected by the user in search results — drives the detail sheet.
+    @Published var selectedMap: Map? = nil
+
+
     // MARK: - Master In-Memory Datasets
     
     private(set) var allAgents: [Agent] = []
@@ -161,10 +165,15 @@ final class SearchViewModel: ObservableObject, StateManageableViewModel {
 
         // --- Step 2: Check if a network refresh is needed ---
         let cacheDuration: TimeInterval = 60 * 60 * 24
-        let agentsCacheDate = DataCache.shared.cacheDate(forKey: "agents")
+        let dates = [
+            DataCache.shared.cacheDate(forKey: "agents"),
+            DataCache.shared.cacheDate(forKey: "weapons"),
+            DataCache.shared.cacheDate(forKey: "maps")
+        ].compactMap { $0 }
+        let oldestCacheDate = dates.min()
         let isStale = forceRefresh ||
-            agentsCacheDate == nil ||
-            Date().timeIntervalSince(agentsCacheDate!) > cacheDuration
+            oldestCacheDate == nil ||
+            Date().timeIntervalSince(oldestCacheDate!) > cacheDuration
 
         guard isStale else { return }
 

@@ -68,6 +68,7 @@ struct AgentsView: View {
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
+        .enableSwipeBack()
         .task {
             await viewModel.loadAgents()
         }
@@ -159,14 +160,7 @@ struct AgentsView: View {
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            Button(action: { dismiss() }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.backward")
-                    Text("BACK")
-                        .font(.custom(FontNames.tungstenMedium, size: 22))
-                }
-                .foregroundStyle(.slightlyBlack)
-            }
+            ValorantBackButton(isLight: true)
         }
 
         ToolbarItem(placement: .principal) {

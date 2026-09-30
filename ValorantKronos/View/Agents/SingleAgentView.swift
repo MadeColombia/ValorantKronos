@@ -67,16 +67,10 @@ struct SingleAgentView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: { dismiss() }) {
-                        HStack(spacing: 5) {
-                            Image(systemName: "chevron.backward")
-                            Text("AGENTS")
-                                .font(.custom(FontNames.tungstenMedium, size: 22))
-                        }
-                        .foregroundStyle(.white)
-                    }
+                    ValorantBackButton()
                 }
             }
+            .enableSwipeBack()
     }
 }
 

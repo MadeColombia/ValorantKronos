@@ -89,19 +89,13 @@ struct MapsView: View {
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarTitleDisplayMode(.inline)
+        .enableSwipeBack()
         .task {
             await viewModel.loadMaps()
         }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: { dismiss() }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.backward")
-                        Text("BACK")
-                            .font(.custom(FontNames.tungstenMedium, size: 22))
-                    }
-                    .foregroundStyle(.slightlyBlack)
-                }
+                ValorantBackButton(isLight: true)
             }
 
             ToolbarItem(placement: .principal) {

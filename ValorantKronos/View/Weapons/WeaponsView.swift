@@ -78,19 +78,13 @@ struct WeaponsView: View {
                     .padding(.top, 10)
                 }
             }
+            .navigationBarBackButtonHidden(true)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button(action: {
-                        dismiss()
-                    }, label: {
-                        HStack(spacing: 5){
-                            Image(systemName: "chevron.backward")
-                            Text("BACK")
-                                .font(.custom(FontNames.tungstenMedium, size: 22))
-                        }.foregroundStyle(Color.white)
-                    })
+                    ValorantBackButton()
                 }
             }
+            .enableSwipeBack()
             .task {
                 await viewModel.loadWeapons()
             }

@@ -67,13 +67,7 @@ struct SingleWeaponView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button(action: { dismiss() }) {
-                    HStack(spacing: 5) {
-                        Image(systemName: "chevron.backward")
-                        Text("WEAPONS")
-                            .font(.custom(FontNames.tungstenMedium, size: 22))
-                    }.foregroundStyle(Color.slightlyBlack)
-                }
+                ValorantBackButton()
             }
 
             ToolbarItem(placement: .principal) {
@@ -83,6 +77,7 @@ struct SingleWeaponView: View {
                     .animation(.easeOut(duration: 0.2), value: showPrincipalTitle)
             }
         }
+        .enableSwipeBack()
     }
 }
 
